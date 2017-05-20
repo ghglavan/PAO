@@ -12,8 +12,9 @@ public class Menus {
     private Scanner scan = new Scanner(System.in);
     private List<Articles> articles = new ArrayList<Articles>();
 
+    private List<Drafts> drafts = new ArrayList<Drafts>();
 
-    private int articlesIndex = 0;
+
     private String loggedUser;
 
 
@@ -236,7 +237,6 @@ public class Menus {
         try {
             dbm.publishArticle(title,loggedUser,content);
             articles.clear();
-            articlesIndex = 0;
 
 
         } catch (SQLException e) {
@@ -246,7 +246,11 @@ public class Menus {
     }
 
     private void saveToDraft(String title, String content){
-
+        try{
+            dbm.saveToDrafts(title,loggedUser,content);
+        }catch (Exception e){
+            System.out.println("Error saving to drafts"  + e.getMessage());
+        }
     }
 
 

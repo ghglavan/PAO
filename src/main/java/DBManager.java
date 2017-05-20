@@ -159,6 +159,15 @@ public class DBManager {
         return s.getInt(1);
     }
 
+    public void saveToDrafts(String title,String auth,String content) throws SQLException {
+        int auth_id;
+        ResultSet s = statement.executeQuery("select user_id from users where username = '" + auth +"'");
+        s.next();
+        auth_id = s.getInt(1);
+
+        statement.executeUpdate("insert into drafts (`titlu`, `autor_id`, `continut`) VALUES ('" + title +"','" + auth_id + "','" + content +"')");
+
+    }
 
 
     public void getUsers() throws SQLException {
