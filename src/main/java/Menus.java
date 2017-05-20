@@ -326,6 +326,39 @@ public class Menus {
         System.out.println("-----------------");
 
 
+        int ch = 0;
+        do {
+
+            System.out.println("What do you want to do next:\n 1. Publish this draft\n 2. exit");
+            ch = scan.nextInt();
+            switch (ch){
+                case 1: publishArticle(d.getTitle(),d.getContent());
+                    try {
+                        dbm.deleteDraft(id);
+                    } catch (SQLException e) {
+                        System.out.println("Error while deleting the draft");
+                    }
+                    return;
+            }
+
+        }while (ch != 2);
+    }
+
+    private void deleteDraft(){
+        int id;
+
+        do {
+            System.out.println("Please enter the draft id :");
+
+            id = scan.nextInt();
+        }while ( readDraft(id) == null);
+
+        try {
+            dbm.deleteDraft(id);
+        } catch (SQLException e) {
+            System.out.println("Error while deleting the draft");
+        }
+
     }
 
     private void updateDraft(){
@@ -407,10 +440,13 @@ public class Menus {
                 case 3:
                     previewDraft();
                     break;
+                case 4:
+                    deleteDraft();
+                    break;
 
             }
 
-        }while(ch != 4);
+        }while(ch != 5);
 
     }
 
@@ -424,9 +460,9 @@ public class Menus {
             scan.nextLine();
 
             switch (ch){
-                case 1 : articlesMenu();
-                case 2 : writeArticleMenu();
-                case 3 : viewDraftsMenu();
+                case 1 : articlesMenu();break;
+                case 2 : writeArticleMenu();break;
+                case 3 : viewDraftsMenu();break;
             }
 
 

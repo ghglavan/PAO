@@ -175,7 +175,7 @@ public class DBManager {
         s.next();
         user_id = s.getInt(1);
 
-        s = statement.executeQuery("Select * from drafts where auth_id = '" + user_id + "'  order by date desc limit 200");
+        s = statement.executeQuery("Select * from drafts where autor_id = '" + user_id + "'  order by date desc limit 200");
 
 
         int id;
@@ -209,6 +209,10 @@ public class DBManager {
         statement.executeUpdate("UPDATE `PAO_App`.`drafts` SET `titlu`='" + title+ "', `continut`='" +contetnt + "' WHERE `draft_id`='" + id +"'");
     }
 
+    public void deleteDraft(int id) throws SQLException {
+        statement.executeUpdate("delete from drafts where draft_id = '" + id +"'");
+
+    }
 
     public void getUsers() throws SQLException {
 
