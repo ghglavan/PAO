@@ -167,6 +167,14 @@ public class Menus {
 
     private void articlesMenu(){
         int ch = 0;
+
+        try {
+            dbm.loadArticles();
+        } catch (SQLException e) {
+            System.out.println("error loadin articles");
+            return;
+        }
+
         do{
 
             System.out.println("Articles menu:\n 1. Load next 40 articles\n2. Load previous 40 articles\n3.to open an article\n 4.exit");
@@ -213,14 +221,59 @@ public class Menus {
 
     }
 
+    private void publishArticle(String title,String content){
+
+        dbm.publishArticle(title,loggedUser,content);
+
+    }
+
+    private void writeArticle(){
+        String title;
+        String content = "";
+        System.out.println("Title:");
+        title =  scan.nextLine();
+        System.out.println("Content: (  Write '!end!' on a single line to finish  ) ");
+        do {
+            String s = scan.nextLine();
+            if(s == "!end!") break;
+
+            content = content + s;
+        }while(true);
+
+        int ch = 0;
+
+        do{
+            System.out.println("What do you want to do with your article? \n1.Publish\n2.Save to drafts\n 3.Discard");
+            ch = scan.nextInt();
+            scan.nextLine();
+
+            switch (ch){
+                case 1 : publishArticle(title,content);
+                case 2 : saveToDraft(title,content);
+            }
+
+        }while(ch != 1 && ch != 2 && ch != 3);
+
+
+    }
+
+
     private void userMenu(){
         int ch = 0;
 
         do {
-            System.out.println("Welcome," + loggedUser + "!!\n1.Read articles\n2.Write an article\n3.Write a draft\n4.View your drafts\n5.exit");
+            System.out.println("Welcome," + loggedUser + "!!\n1.Read articles\n2.Write an article\n3.View your drafts\n4.exit");
             ch = scan.nextInt();
             scan.nextLine();
-        }while (ch != 5);
+
+            switch (ch){
+                case 1 : articlesMenu();
+                case 2 : writeArticle();
+                case 3 : viewDrafts();
+            }
+
+
+        }while (ch != 4);
     }
 
 
@@ -297,12 +350,7 @@ public class Menus {
 
         int choice = 0;
 
-        try {
-            dbm.loadArticles();
-        } catch (SQLException e) {
-            System.out.println("error loadin articles");
-            return;
-        }
+
 
         do {
             System.out.println("Welcome! \n 1.register\n2.login\n3.view published articles\n4.Print this menu again");

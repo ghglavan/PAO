@@ -137,6 +137,9 @@ public class DBManager {
 
     }
 
+    
+
+
     public int getNrOfArticles() throws SQLException {
         ResultSet s = statement.executeQuery("select count(*) from articole");
 
