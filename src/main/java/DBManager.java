@@ -19,11 +19,9 @@ public class DBManager {
     private Connection connect = null;
     private Statement statement = null;
     private Statement statement2 = null;
-    private PreparedStatement preparedStatement = null;
     private ResultSet resultSet = null;
-    HashMap<Integer,String> map = new HashMap<>();
-    List<Articles> articlesL = new ArrayList<Articles>();
-    int arti = 0;
+    List<Articles> articlesL = new ArrayList<>();
+    List<Drafts> drafts = new ArrayList<>();
 
     private void connectToDb(){
 
@@ -167,6 +165,48 @@ public class DBManager {
 
         statement.executeUpdate("insert into drafts (`titlu`, `autor_id`, `continut`) VALUES ('" + title +"','" + auth_id + "','" + content +"')");
 
+    }
+
+    public List<Drafts> loadDrafts(String user) throws SQLException {
+        drafts.clear();
+
+        int user_id;
+        ResultSet s = statement.executeQuery("select user_id from users where username = '" + user +"'");
+        s.next();
+        user_id = s.getInt(1);
+
+        s = statement.executeQuery("Select * from drafts where auth_id = '" + user_id + "'  order by date desc limit 200");
+
+
+        int id;
+        String title;
+        String content;
+        Date date;
+
+
+        while(s.next()){
+
+            id = s.getInt(1);
+            title = s.getString(2);
+            content = s.getString(4);
+            date = s.getDate(5);
+
+
+            drafts.add(new Drafts(id,title,content,user,date));
+        }
+
+
+        return drafts;
+
+
+
+
+
+    }
+
+
+    public void updateDraft(int id, String title, String user,String contetnt) throws SQLException {
+        statement.executeUpdate("UPDATE `PAO_App`.`drafts` SET `titlu`='" + title+ "', `continut`='" +contetnt + "' WHERE `draft_id`='" + id +"'");
     }
 
 

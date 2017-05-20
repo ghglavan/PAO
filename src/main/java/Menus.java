@@ -254,7 +254,7 @@ public class Menus {
     }
 
 
-    private void writeArticle(){
+    private void writeArticleMenu(){
         String title;
         String content = "";
         System.out.println("Title:");
@@ -270,7 +270,7 @@ public class Menus {
         int ch = 0;
 
         do{
-            System.out.println("What do you want to do with your article? \n1.Publish\n2.Save to drafts\n 3.Discard");
+            System.out.println("What do you want to do with your article? \n    1.Publish\n    2.Save to drafts\n    3.Discard");
             ch = scan.nextInt();
             scan.nextLine();
 
@@ -285,6 +285,136 @@ public class Menus {
     }
 
 
+    public void printDrafts(){
+
+        drafts.forEach((d)->{
+            System.out.println("ID: "+ d.getId());
+            System.out.println("Title: "+ d.getTitle());
+            System.out.println("Author: "+ d.getAuth());
+            System.out.println("Published at: "+ d.getDate());
+            System.out.println("Preview: "+ d.getContent().substring(0,min(d.getContent().length()-1,20)));
+            System.out.println("-----------------");
+        });
+
+    }
+
+    private Drafts readDraft(int id){
+        for(Drafts d : drafts){
+            if (d.getId() == id){
+
+                return  d;
+            }
+        }
+
+        return null;
+    }
+
+    private void previewDraft(){
+        int id;
+        Drafts d;
+        do {
+            System.out.println("Please enter the draft id :");
+
+            id = scan.nextInt();
+        }while ( (d = readDraft(id)) == null);
+
+        System.out.println("ID: "+ d.getId());
+        System.out.println("Title: "+ d.getTitle());
+        System.out.println("Author: "+ d.getAuth());
+        System.out.println("Published at: "+ d.getDate());
+        System.out.println("Preview: "+ d.getContent().substring(0,min(d.getContent().length()-1,20)));
+        System.out.println("-----------------");
+
+
+    }
+
+    private void updateDraft(){
+        int ch = 0;
+        Drafts d;
+
+        int id;
+
+        do {
+            System.out.println("Please enter the draft id :");
+
+            id = scan.nextInt();
+        }while ( (d = readDraft(id)) == null);
+
+
+        do {
+            System.out.println("What do you want to change?\n 1. The title\n 2. The content\n 3. exit");
+
+            switch (ch){
+                case 1:
+                    System.out.println("Enter the new title : ");
+                    String s = scan.nextLine();
+                    try {
+                        dbm.updateDraft(id,s,loggedUser,d.getContent());
+                    } catch (SQLException e) {
+                        System.out.println("Error while updating draft" + e.getMessage());
+                    }
+                    break;
+                case 2:
+                    String content = "";
+                    System.out.println("Enter the new content : (  Write '!end!' on a single line to finish  ) ");
+                    do {
+                        s = scan.nextLine();
+                        if(s.equals( "!end!")) break;
+
+                        content = content + s;
+                    }while(true);
+                    try {
+                        dbm.updateDraft(id,d.getTitle(),loggedUser,content);
+                    } catch (SQLException e) {
+                        System.out.println("Error while updating draft" + e.getMessage());
+                    }
+                    break;
+
+            }
+
+        }while (ch != 3);
+    }
+
+    private void viewDraftsMenu(){
+
+        int ch = 0;
+
+        try {
+            drafts = dbm.loadDrafts(loggedUser);
+            printDrafts();
+        }catch (Exception e){
+            System.out.println("Exception while loading drafts" + e.getMessage());
+        }
+
+        do{
+            System.out.println("There are "+ drafts.size() + " drafts");
+            System.out.println("Drafts menu: \n 1.Reload Drafts\n 2.Update Draft\n 3.Preview Draft\n 4.Delete Draft\n 5.exit");
+
+            ch = scan.nextInt();
+
+            switch (ch){
+                case 1:
+                    try {
+                        drafts = dbm.loadDrafts(loggedUser);
+                        printDrafts();
+                    }catch (Exception e){
+                        System.out.println("Exception while loading drafts" + e.getMessage());
+                    }
+                    break;
+                case 2:
+                    updateDraft();
+                    break;
+                case 3:
+                    previewDraft();
+                    break;
+
+            }
+
+        }while(ch != 4);
+
+    }
+
+
     private void userMenu(){
         int ch = 0;
 
@@ -295,8 +425,8 @@ public class Menus {
 
             switch (ch){
                 case 1 : articlesMenu();
-                case 2 : writeArticle();
-                //case 3 : viewDrafts();
+                case 2 : writeArticleMenu();
+                case 3 : viewDraftsMenu();
             }
 
 
