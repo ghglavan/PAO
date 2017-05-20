@@ -4,10 +4,16 @@
 
 
 
-public class Client {
+
+public class WordPress {
+
+
 
     public static void main(String[] args){
-        System.out.println(Encryptor.cryptWithMD5("blablabla"));
+
+        Menus m = new Menus();
+        m.mainMenu();
+
     }
 
 }
