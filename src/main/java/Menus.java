@@ -10,9 +10,12 @@ import java.util.regex.Pattern;
 public class Menus {
     private DBManager dbm = new DBManager();
     private Scanner scan = new Scanner(System.in);
-    private List<List<Articles>> articles = new ArrayList<List<Articles>>();
+    private List<Articles> articles = new ArrayList<Articles>();
+
+
     private int articlesIndex = 0;
     private String loggedUser;
+
 
 
     private boolean loginUser(String username, String pw){
@@ -119,13 +122,18 @@ public class Menus {
         return true;
     }
 
+
+    private int min(int a,int b){
+        return a>b ? b: a;
+    }
+
     private void printArticles(){
-        articles.get(articlesIndex).forEach((art)->{
+        articles.forEach((art)->{
             System.out.println("ID: " + art.getId());
             System.out.println("Title: " + art.getTitle());
             System.out.println("Author: " + art.getAuth());
             System.out.println("Published at: " + art.getDate().toString());
-            System.out.println("Preview: " + art.getContent().substring(0,20));
+            System.out.println("Preview: " + art.getContent().substring(0, min(art.getContent().length()-1,20)));
             System.out.println("Views: " + art.getViews());
             System.out.println("-----------------");
         });
@@ -135,7 +143,7 @@ public class Menus {
 
     private void readArticle(int id){
         boolean opened = false;
-        List<Articles> l =  articles.get(articlesIndex);
+        List<Articles> l =  articles;
 
         for(Articles art : l){
             if(art.getId() == id){
@@ -149,14 +157,15 @@ public class Menus {
                 System.out.println("-----------------");
                 try {
                     dbm.incrementViews(id);
+                    art.setViews(art.getViews()+1);
                 } catch (SQLException e) {
-                    System.out.println("Error incrementing views!!");
+                    System.out.println("Error incrementing views!!" + e.getMessage());
                 }
                 break;
             }
         }
 
-        if(opened = false){
+        if(opened == false){
             System.out.println("ID does not exist");
         }else{
             System.out.println("Press ENTER to return");
@@ -168,64 +177,78 @@ public class Menus {
     private void articlesMenu(){
         int ch = 0;
 
+        int nr = 0;
+
+
         try {
-            dbm.loadArticles();
+            articles = dbm.loadArticles();
+            nr = dbm.getNrOfArticles();
+            if (articles.size() == 0) {
+                System.out.println("No articles to load");
+            } else {
+                printArticles();
+
+            }
         } catch (SQLException e) {
-            System.out.println("error loadin articles");
-            return;
+            System.out.println("Error loading new articles" + e.getMessage());
         }
 
-        do{
 
-            System.out.println("Articles menu:\n 1. Load next 40 articles\n2. Load previous 40 articles\n3.to open an article\n 4.exit");
+        do{
+            System.out.println("There are " + nr  + " articles!:D");
+            System.out.println("Articles menu:\n 1. Reload articles\n 2.Open an article\n 3.exit");
 
             ch = scan.nextInt();
             scan.nextLine();
 
-            switch (ch){
-                case 1 : if(articlesIndex < articles.size()){
-                    printArticles();
-                    articlesIndex++;
-                }else{
+            switch (ch) {
+                case 1:
                     try {
-                        List<Articles> l = dbm.getNextSet();
-                        if(l.size() == 0){
-                            System.out.println("No more articles to load");
-                        }else {
-                            articles.add(l);
+                        articles = dbm.loadArticles();
+                        if (articles.size() == 0) {
+                            System.out.println("No articles to load");
+                        } else {
                             printArticles();
-                            articlesIndex++;
+
                         }
                     } catch (SQLException e) {
-                        System.out.println("Error loading new articles");
+                        System.out.println("Error loading new articles" + e.getMessage());
                     }
-                }
+
                     break;
 
-                case 2 : if(articlesIndex > 0){
-                    printArticles();
-                    articlesIndex--;
-                }else if(articlesIndex == 0){
-                    printArticles();
-                }else{
-                    System.out.println("No more articles to go back to!");
-                }
+                case 2:
+                    System.out.println("Please enter the article id:");
+                    int id = scan.nextInt();
+                    scan.nextLine();
+                    readArticle(id);
                     break;
-                case 3 : System.out.println("Please enter the article id:");
-                            int id = scan.nextInt(); scan.nextLine();
-                            readArticle(id);
             }
+        } while (ch != 3);
 
-        } while (ch != 4);
 
 
     }
+
 
     private void publishArticle(String title,String content){
 
-        dbm.publishArticle(title,loggedUser,content);
+        try {
+            dbm.publishArticle(title,loggedUser,content);
+            articles.clear();
+            articlesIndex = 0;
+
+
+        } catch (SQLException e) {
+            System.out.println("Error publish ing the article " + e.getMessage());
+        }
 
     }
+
+    private void saveToDraft(String title, String content){
+
+    }
+
 
     private void writeArticle(){
         String title;
@@ -235,7 +258,7 @@ public class Menus {
         System.out.println("Content: (  Write '!end!' on a single line to finish  ) ");
         do {
             String s = scan.nextLine();
-            if(s == "!end!") break;
+            if(s.equals( "!end!")) break;
 
             content = content + s;
         }while(true);
@@ -262,14 +285,14 @@ public class Menus {
         int ch = 0;
 
         do {
-            System.out.println("Welcome," + loggedUser + "!!\n1.Read articles\n2.Write an article\n3.View your drafts\n4.exit");
+            System.out.println("Welcome," + loggedUser + "!!\n  1.Read articles\n  2.Write an article\n  3.View your drafts\n  4.exit");
             ch = scan.nextInt();
             scan.nextLine();
 
             switch (ch){
                 case 1 : articlesMenu();
                 case 2 : writeArticle();
-                case 3 : viewDrafts();
+                //case 3 : viewDrafts();
             }
 
 
@@ -296,6 +319,7 @@ public class Menus {
         }while (!loginUser(username,pw));
 
         loggedUser = username;
+
 
         userMenu();
     }
@@ -353,7 +377,7 @@ public class Menus {
 
 
         do {
-            System.out.println("Welcome! \n 1.register\n2.login\n3.view published articles\n4.Print this menu again");
+            System.out.println("Welcome! \n1.register\n2.login\n3.view published articles\n4.Print this menu again");
             choice = scan.nextInt();
             scan.nextLine();
 

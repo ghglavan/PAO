@@ -18,9 +18,12 @@ public class DBManager {
 
     private Connection connect = null;
     private Statement statement = null;
+    private Statement statement2 = null;
     private PreparedStatement preparedStatement = null;
     private ResultSet resultSet = null;
-    HashMap<Integer,String> map;
+    HashMap<Integer,String> map = new HashMap<>();
+    List<Articles> articlesL = new ArrayList<Articles>();
+    int arti = 0;
 
     private void connectToDb(){
 
@@ -33,6 +36,7 @@ public class DBManager {
 
 
             statement = connect.createStatement();
+            statement2 = connect.createStatement();
 
         }catch (Exception e){
             System.out.println("eroare la conectare:");
@@ -82,67 +86,76 @@ public class DBManager {
 
     public void incrementViews(int id) throws SQLException {
         ResultSet s = statement.executeQuery("select views from articole where articol_id = '" + id +  "'");
+        s.next();
         int views = s.getInt(1);
         views++;
         statement.executeUpdate("UPDATE articole SET `views`='" + views + "' WHERE `articol_id`='"+ id + "'");
     }
 
 
-    public List<Articles> getNextSet() throws SQLException {
-        List<Articles> a = new ArrayList<Articles>();
 
-        int i = 0;
-        while(resultSet.next() && i < 40){
+
+    public List<Articles> loadArticles() throws SQLException {
+
+            articlesL.clear();
+
+            ResultSet s = statement.executeQuery("Select * from articole order by date desc limit 200");
+
+
             int id;
             String title;
+            int auth_id;
             String content;
-            String auth;
             Date date;
             int views;
-            int authid;
 
-            id = resultSet.getInt(1);
-            title = resultSet.getString(2);
-            content = resultSet.getString(3);
-            date = resultSet.getDate(5);
-            views = resultSet.getInt(6);
+            while(s.next()){
 
-            authid = resultSet.getInt(4);
+                id = s.getInt(1);
+                title = s.getString(2);
+                auth_id = s.getInt(3);
+                content = s.getString(4);
+                date = s.getDate(5);
+                views = s.getInt(6);
+
+                ResultSet s2 = statement2.executeQuery("Select username from users where user_id = '" + auth_id +"'");
+
+                s2.next();
+
+                String auth = s2.getString(1);
 
 
-            if(map.get(authid) == null) {
-                ResultSet s = statement.executeQuery("select username from users where user_id = '" + authid + "'");
-                auth = s.getString(1);
-                map.put(authid,auth);
-            }else{
-                auth = map.get(authid);
+                articlesL.add(new Articles(id,title,content,auth,date, views));
             }
 
-            a.add(new Articles(id,title,content,auth,date, views));
-            i++;
 
-        }
+            return articlesL;
 
-        return  a;
+
 
 
     }
 
+    public void publishArticle(String title,String auth, String content) throws SQLException {
 
-    public void loadArticles() throws SQLException {
+        int auth_id;
 
+        ResultSet s = statement.executeQuery("select user_id from users where username = '" + auth +"'");
+        s.next();
+        auth_id = s.getInt(1);
 
+        statement.executeUpdate("insert into articole (`titlu`, `autor_id`, `continut`) VALUES ('" + title +"','" + auth_id + "','" + content +"')");
 
-        resultSet = statement.executeQuery("select * from articole order by date desc limit 300");
+        articlesL.clear();
+
+        loadArticles();
 
     }
-
-    
 
 
     public int getNrOfArticles() throws SQLException {
         ResultSet s = statement.executeQuery("select count(*) from articole");
-
+        s.next();
         return s.getInt(1);
     }
 
