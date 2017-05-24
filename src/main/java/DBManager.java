@@ -4,13 +4,11 @@
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -19,18 +17,17 @@ public class DBManager {
     private Connection connect = null;
     private Statement statement = null;
     private Statement statement2 = null;
-    private ResultSet resultSet = null;
     List<Articles> articlesL = new ArrayList<>();
     List<Drafts> drafts = new ArrayList<>();
 
     private void connectToDb(){
 
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
             // Setup the connection with the DB
             connect = DriverManager
-                    .getConnection("jdbc:mysql://localhost/PAO_App?"
-                            + "user=x2009&password=fuckriot12");
+                    .getConnection("jdbc:mysql://localhost/PAO_App?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
+                            , "x2009","fuckriot12");
 
 
             statement = connect.createStatement();
@@ -113,7 +110,7 @@ public class DBManager {
                 title = s.getString(2);
                 auth_id = s.getInt(3);
                 content = s.getString(4);
-                date = s.getDate(5);
+                date = s.getTimestamp(5);
                 views = s.getInt(6);
 
                 ResultSet s2 = statement2.executeQuery("Select username from users where user_id = '" + auth_id +"'");
@@ -189,7 +186,7 @@ public class DBManager {
             id = s.getInt(1);
             title = s.getString(2);
             content = s.getString(4);
-            date = s.getDate(5);
+            date = s.getTimestamp(5);
 
 
             drafts.add(new Drafts(id,title,content,user,date));
